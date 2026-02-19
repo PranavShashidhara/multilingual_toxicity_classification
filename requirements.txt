@@ -1,22 +1,11 @@
-# Core ML libraries
-torch
-torchvision
-torchaudio
 transformers
 sentencepiece
 tokenizers
-
-# Utilities
 numpy
 pandas
 scikit-learn
 tqdm
-
-# Optional multilingual processing
 langdetect
-
-# Experiment tracking / logging
 wandb
-
-# YAML config files
 pyyaml
+datasets
