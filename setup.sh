@@ -24,7 +24,7 @@ pip install torch --index-url https://download.pytorch.org/whl/cpu
 pip install -r requirements.txt
 
 echo "Setting up folders..."
-for folder in data/raw data/processed experiments logs checkpoints; do
+for folder in data/processed checpoints; do
     if [ ! -d "$folder" ]; then
         mkdir -p "$folder"
         echo "Created folder: $folder"
@@ -34,7 +34,7 @@ done
 # Check for GPU
 if python -c "import torch; exit(0) if torch.cuda.is_available() else exit(1)"; then 
     echo "GPU detected: Pytorch for CUDA." 
-else 
+else README.md
     echo "WARNING: No GPU detected. Training will run on CPU." 
 fi 
 

@@ -33,6 +33,33 @@ This project aims to build a system that:
 
 **Labels**: Binary toxicity (`toxic`)
 
+## Project Structure
+
+```
+nlp_proj/
+├── preprocess.py          # Loads, cleans, and splits Jigsaw + multilingual datasets into train/val/test CSVs
+├── dataset.py             # PyTorch Dataset class that tokenizes text and packages toxicity + intent labels
+├── model_utils.py         # Defines MultiTaskXLMR model and train_epoch / train_epoch_multilingual training loops
+├── eval.py                # Runs inference and computes classification report, ROC-AUC, and per-language F1
+├── validate.py            # Computes per-intent ROC-AUC scores on the validation set with masking for missing labels
+├── requirements.txt       # Python dependencies
+├── setup.sh               # Environment setup script
+└── data/
+    └── processed/
+        ├── jigsaw/
+        │   ├── jigsaw_train.csv
+        │   ├── jigsaw_val.csv
+        │   └── jigsaw_test.csv
+        └── multilingual_toxic/
+            ├── merged_non_en_train.csv
+            ├── merged_non_en_test.csv
+            └── per_language_test/
+                ├── ar_test.csv
+                ├── ru_test.csv
+                ├── zh_test.csv
+                └── ...
+```
+
 ## Setup
 
 ### Installation
@@ -70,43 +97,29 @@ python preprocess.py
 - Saves merged data to `data/processed/multilingual_toxic/`
 - Also saves per-language test sets in `per_language_test/`
 
-### Output Structure
-```
-data/processed/
-├── jigsaw/
-│   ├── jigsaw_train.csv
-│   ├── jigsaw_val.csv
-│   └── jigsaw_test.csv
-└── multilingual_toxic/
-    ├── merged_non_en_train.csv
-    ├── merged_non_en_test.csv
-    └── per_language_test/
-        ├── ar_test.csv
-        ├── ru_test.csv
-        ├── zh_test.csv
-        └── ...
-```
-
-
-
 ## Current Status
 
-✅ **Completed:**
+**Completed:**
 - Data preprocessing pipeline
 - Stratified train/val/test splits
 - Per-language test set generation
 - Text cleaning and normalization
+- PyTorch Dataset class with XLM-RoBERTa tokenization
+- Multi-task model architecture (toxicity + intent heads)
+- Training loops for both English and multilingual data (with intent masking)
+- Evaluation pipeline with ROC-AUC and per-language F1
+- Per-intent validation with label masking
 
-🚧 **Next Steps:**
-- Model architecture implementation
-- Training pipeline with DDP
-- Evaluation metrics (Macro-F1, ROC-AUC, Hamming Loss, mAP)
+**Next Steps:**
+- End-to-end training script wiring all components together
+- PyTorch DDP multi-GPU training
 - Fairness analysis (Subgroup AUC, bias metrics)
-
+- Model checkpointing and inference pipeline
 
 ## Technical Stack
 
 - **Data**: Hugging Face Datasets, Pandas
-- **ML Framework**: PyTorch (planned)
-- **Models**: Transformers (planned)
+- **ML Framework**: PyTorch
+- **Models**: XLM-RoBERTa-Large (via Hugging Face Transformers)
 - **Preprocessing**: scikit-learn
+- **Monitoring**: TensorBoard (optional, integrated in training loop)
