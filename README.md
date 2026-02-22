@@ -110,12 +110,6 @@ python preprocess.py
 - Evaluation pipeline with ROC-AUC and per-language F1
 - Per-intent validation with label masking
 
-**Next Steps:**
-- End-to-end training script wiring all components together
-- PyTorch DDP multi-GPU training
-- Fairness analysis (Subgroup AUC, bias metrics)
-- Model checkpointing and inference pipeline
-
 ## Technical Stack
 
 - **Data**: Hugging Face Datasets, Pandas
