@@ -48,3 +48,54 @@ def run_evaluation(model, data_loader, device, lang_list=None):
             lang_results[lang] = f1
             
     return report, auc, lang_results, cm
+
+def run_intent_evaluation(model, data_loader, device):
+    """
+    Evaluate per-intent ROC-AUC scores on the English test set.
+    
+    Returns:
+        Dictionary with intent names as keys and ROC-AUC scores as values
+    """
+    model.eval()
+    intent_names = ['severe_toxic', 'obscene', 'threat', 'insult', 'identity_hate']
+    all_intent_probs = []
+    all_intent_labels = []
+
+    with torch.no_grad():
+        for d in tqdm(data_loader, desc="Evaluating Intents"):
+            input_ids = d["input_ids"].to(device)
+            attention_mask = d["attention_mask"].to(device)
+            intent_labels = d["intent_labels"].to(device)
+
+            with torch.amp.autocast('cuda', dtype=torch.bfloat16):
+                _, intent_logits = model(input_ids, attention_mask)
+            
+            # Cast to float32 BEFORE sigmoid for numerical stability
+            intent_probs = torch.sigmoid(intent_logits.float()).cpu().numpy()
+            all_intent_probs.append(intent_probs)
+            all_intent_labels.append(intent_labels.cpu().numpy())
+
+    # Concatenate all batches
+    all_intent_probs = np.vstack(all_intent_probs)
+    all_intent_labels = np.vstack(all_intent_labels)
+
+    # Calculate per-intent ROC-AUC
+    intent_auc_scores = {}
+    
+    print("\n--- PER-INTENT ROC-AUC SCORES ---")
+    for i, name in enumerate(intent_names):
+        y_true = all_intent_labels[:, i]
+        y_pred = all_intent_probs[:, i]
+        
+        # Only evaluate on valid labels (0 or 1, not -1)
+        mask = (y_true == 0) | (y_true == 1)
+        
+        if len(np.unique(y_true[mask])) > 1:  # Need both classes to compute AUC
+            auc = roc_auc_score(y_true[mask], y_pred[mask])
+            intent_auc_scores[name] = auc
+            print(f"{name.upper():<20}: {auc:.4f}")
+        else:
+            print(f"{name.upper():<20}: N/A (only one class in data)")
+            intent_auc_scores[name] = None
+
+    return intent_auc_scores
